@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عجلة الاختيار الذكية - Smart Choice Wheel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .language-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+            to { text-shadow: 2px 2px 20px rgba(255,255,255,0.5); }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 40px;
+            width: 100%;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            min-width: 350px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .input-section h2 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .choices-display {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .choice-item {
+            background: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .choice-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wheel-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform: rotate(0deg);
+            background: conic-gradient(from 0deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #98d8c8);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #fff;
+            z-index: 10;
+            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            z-index: 10;
+            font-size: 24px;
+        }
+
+        .result-display {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            min-width: 300px;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .result-display.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-display h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .result-text {
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .spinning {
+            animation: spin 0.2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* English styles */
+        .en {
+            direction: ltr;
+            text-align: left;
+        }
+
+        .en .language-toggle {
+            left: auto;
+            right: 20px;
+        }
+
+        .en .choice-item {
+            flex-direction: row;
+        }
+
+        .en .choice-color {
+            margin-left: 0;
+            margin-right: 10px;
+        }
+
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .en .notification {
+            right: auto;
+            left: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .notification {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: calc(100% - 40px);
+            }
+
+            .en .notification {
+                left: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="language-toggle" onclick="toggleLanguage()">
+        <span id="langText">English</span>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1 id="mainTitle">عجلة الاختيار الذكية</h1>
+            <p id="subtitle">محتار؟ سيبها للعجلة تختار!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 id="inputTitle">أضف اختياراتك</h2>
+                <div class="input-group">
+                    <input type="text" id="choiceInput" class="input-field" placeholder="اكتب اختيارك هنا...">
+                    <button class="btn btn-primary" onclick="addChoice()" id="addBtn">إضافة</button>
+                    <button class="btn btn-secondary" onclick="clearAll()" id="clearBtn">مسح الكل</button>
+                </div>
+                <div class="choices-display" id="choicesDisplay"></div>
+            </div>
+
+            <div class="wheel-section">
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel" id="wheel"></div>
+                    <div class="wheel-center">🎯</div>
+                </div>
+                <button class="btn btn-success" onclick="spinWheel()" id="spinBtn" disabled>ابدأ الدوران!</button>
+                
+                <div class="result-display" id="resultDisplay">
+                    <h3 id="resultTitle">النتيجة:</h3>
+                    <div class="result-text" id="resultText"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let choices = [];
+        let isSpinning = false;
+        let currentLanguage = 'ar';
+        let spinAnimation;
+
+        const colors = [
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', 
+            '#dda0dd', '#98d8c8', '#f093fb', '#f5576c', '#4facfe',
+            '#43e97b', '#38f9d7', '#5ee7df', '#66a6ff', '#89f7fe',
+            '#fdbb2d', '#22c1c3', '#2193b0', '#6dd5ed', '#ff9a9e'
+        ];
+
+        const translations = {
+            ar: {
+                mainTitle: 'عجلة الاختيار الذكية',
+                subtitle: 'محتار؟ سيبها للعجلة تختار!',
+                inputTitle: 'أضف اختياراتك',
+                placeholder: 'اكتب اختيارك هنا...',
+                addBtn: 'إضافة',
+                clearBtn: 'مسح الكل',
+                spinBtn: 'ابدأ الدوران!',
+                resultTitle: 'النتيجة:',
+                langText: 'English',
+                emptyInput: 'الرجاء إدخال نص قبل الإضافة',
+                maxChoices: 'يمكنك إضافة حتى 20 خيار فقط',
+                spinning: 'العجلة تدور...',
+                noChoices: 'الرجاء إضافة خيارات أولاً'
+            },
+            en: {
+                mainTitle: 'Smart Choice Wheel',
+                subtitle: 'Can\'t decide? Let the wheel choose!',
+                inputTitle: 'Add Your Choices',
+                placeholder: 'Enter your choice here...',
+                addBtn: 'Add',
+                clearBtn: 'Clear All',
+                spinBtn: 'Spin the Wheel!',
+                resultTitle: 'Result:',
+                langText: 'العربية',
+                emptyInput: 'Please enter text before adding',
+                maxChoices: 'You can add up to 20 choices only',
+                spinning: 'Wheel is spinning...',
+                noChoices: 'Please add choices first'
+            }
+        };
+
+        function showNotification(message, duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
+        }
+
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
+            const body = document.body;
+            const html = document.documentElement;
+            
+            if (currentLanguage === 'en') {
+                body.classList.add('en');
+                html.setAttribute('lang', 'en');
+                html.setAttribute('dir', 'ltr');
+            } else {
+                body.classList.remove('en');
+                html.setAttribute('lang', 'ar');
+                html.setAttribute('dir', 'rtl');
+            }
+            
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            const lang = translations[currentLanguage];
+            document.getElementById('mainTitle').textContent = lang.mainTitle;
+            document.getElementById('subtitle').textContent = lang.subtitle;
+            document.getElementById('inputTitle').textContent = lang.inputTitle;
+            document.getElementById('choiceInput').placeholder = lang.placeholder;
+            document.getElementById('addBtn').textContent = lang.addBtn;
+            document.getElementById('clearBtn').textContent = lang.clearBtn;
+            document.getElementById('spinBtn').textContent = lang.spinBtn;
+            document.getElementById('resultTitle').textContent = lang.resultTitle;
+            document.getElementById('langText').textContent = lang.langText;
+        }
+
+        function addChoice() {
+            const input = document.getElementById('choiceInput');
+            const choice = input.value.trim();
+            
+            if (!choice) {
+                showNotification(translations[currentLanguage].emptyInput);
+                return;
+            }
+            
+            if (choices.length >= 20) {
+                showNotification(translations[currentLanguage].maxChoices);
+                return;
+            }
+            
+            choices.push(choice);
+            input.value = '';
+            updateDisplay();
+            updateWheel();
+            
+            // Enable spin button if we have choices
+            document.getElementById('spinBtn').disabled = choices.length === 0;
+        }
+
+        function removeChoice(index) {
+            choices.splice(index, 1);
+            updateDisplay();
+            updateWheel();
+            document.getElementById('spinBtn').disabled = choices.length === 0;
+        }
+
+        function clearAll() {
+            if (choices.length === 0) return;
+            
+            choices = [];
+            updateDisplay();
+            updateWheel();
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('resultDisplay').classList.remove('show');
+        }
+
+        function updateDisplay() {
+            const display = document.getElementById('choicesDisplay');
+            display.innerHTML = '';
+            
+            choices.forEach((choice, index) => {
+                const div = document.createElement('div');
+                div.className = 'choice-item';
+                div.innerHTML = `
+                    <span>${choice}</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="choice-color" style="background-color: ${colors[index % colors.length]}"></div>
+                        <button class="remove-btn" onclick="removeChoice(${index})">×</button>
+                    </div>
+                `;
+                display.appendChild(div);
+            });
+        }
+
+        function updateWheel() {
+            const wheel = document.getElementById('wheel');
+            if (choices.length === 0) {
+                wheel.style.background = 'conic-gradient(from 0deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #98d8c8)';
+                return;
+            }
+
+            const segmentAngle = 360 / choices.length;
+            let gradientStops = [];
+            
+            choices.forEach((choice, index) => {
+                const color = colors[index % colors.length];
+                const startAngle = index * segmentAngle;
+                const endAngle = (index + 1) * segmentAngle;
+                gradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
+            });
+            
+            wheel.style.background = `conic-gradient(${gradientStops.join(', ')})`;
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            if (choices.length === 0) {
+                showNotification(translations[currentLanguage].noChoices);
+                return;
+            }
+            
+            isSpinning = true;
+            const wheel = document.getElementById('wheel');
+            const spinBtn = document.getElementById('spinBtn');
+            const resultDisplay = document.getElementById('resultDisplay');
+            
+            spinBtn.disabled = true;
+            resultDisplay.classList.remove('show');
+            showNotification(translations[currentLanguage].spinning, 2000);
+            
+            // Start fast spinning animation
+            wheel.style.animation = 'spin 0.1s linear infinite';
+            
+            // Random rotation between 1800-2520 degrees (5-7 full rotations)
+            const randomRotation = 1800 + Math.random() * 720;
+            
+            // Stop the fast spinning after a delay and start the final rotation
+            setTimeout(() => {
+                wheel.style.animation = '';
+                wheel.style.transform = `rotate(${randomRotation}deg)`;
+                
+                setTimeout(() => {
+                    // Calculate which segment the pointer landed on
+                    const normalizedRotation = randomRotation % 360;
+                    const segmentAngle = 360 / choices.length;
+                    const selectedIndex = Math.floor((360 - normalizedRotation) / segmentAngle) % choices.length;
+                    
+                    // Show result with animation
+                    document.getElementById('resultText').textContent = choices[selectedIndex];
+                    resultDisplay.classList.add('show');
+                    
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                }, 4000); // Match this with the CSS transition duration
+            }, 1000);
+        }
+
+        // Add choice on Enter key press
+        document.getElementById('choiceInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addChoice();
+            }
+        });
+
+        // Initialize
+        updateLanguage();
+    </script>
+</body>
+</html>
